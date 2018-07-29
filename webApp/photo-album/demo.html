@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0,user-scalable=no"
+        id="viewport" />
+    <title>photo-alum</title>
+    <link rel="stylesheet" href="../css/animate/animate.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: black;
+            overflow: hidden
+        }
+
+        ul {
+            list-style: none
+        }
+
+        .img-container li {
+            overflow: hidden;
+            float: left;
+        }
+
+        .clearfix:after {
+            display: block;
+            content: "\20";
+            height: 0;
+            clear: both;
+            overflow: hidden;
+            visibility: hidden;
+        }
+
+        .large {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            background-color: black
+        }
+    </style>
+</head>
+
+<body>
+    <ul class="img-container clearfix" id="container">
+    </ul>
+    <div class="large animated fadeInDown" id="large_container" style="display:none">
+        <img id="large_img">
+    </div>
+    <script src="../js/zepto/zepto.min.js"></script>
+    <script src="../js/zepto/touch.min.js"></script>
+    <script>
+        var total = 17,
+            idx = 1;
+        var zWin = $(window),
+            lImage = $('#large_img'),
+            domImage = lImage[0];
+        var loadImg = function (id, callback) {
+            // 大图容器样式
+            $('#large_container').css({
+                width: zWin.width(),
+                height: zWin.height()
+            }).show();
+            // 大图路径
+            var imgSrc = 'img/' + id + '.large.jpg';
+            var imageObj = new Image();
+            imageObj.onload = function () {
+                var w = this.width;
+                var h = this.height;
+                var winWidth = zWin.width();
+                var winHeight = zWin.height();
+                // 图片展示宽度
+                var realw = parseInt((winWidth - winHeight * w / h) / 2);
+                var realh = parseInt((winHeight - winWidth * h / w) / 2);
+                lImage.css('width', 'auto').css('height', 'auto');
+                lImage.css('padding-left', '0px').css('padding-top', '0px');
+                // 判断是横图还是竖图
+                if (h / w > winHeight / winWidth) {
+                    lImage.attr('src', imgSrc)
+                        .css('height', winHeight)
+                        .css('padding-left', realw + 'px');
+                } else {
+                    lImage.attr('src', imgSrc)
+                        .css('width', winWidth)
+                        .css('padding-top', realh + 'px');
+                }
+                callback && callback();
+            }
+            imageObj.src = imgSrc;
+        }
+        var render = function () {
+            var tmp = '',
+                padding = 2,
+                scrollBarWidth = 0,
+                winWidth = zWin.width();
+            // 计算单张图片宽度
+            var picWidth = Math.floor((winWidth - padding * 3 - scrollBarWidth) / 4);
+            for (var i = 1; i <= total; i++) {
+                var imgSrc = 'img/' + i + '.jpg';
+                var p = padding;
+                if (i % 4 == 1) {
+                    p = 0;
+                }
+                tmp += '<li data-id="' + i + '" class="animated bounceIn" style="width:' + picWidth + 'px;height:' +
+                    picWidth +
+                    'px;padding-left:' + p + 'px;padding-top:' + padding + 'px;"><canvas id="cvs_' + i +
+                    '"></canvas></li>';
+                var imageObj = new Image();
+                imageObj.index = i;
+                imageObj.onload = function () {
+                    var cvs = $('#cvs_' + this.index)[0].getContext("2d");
+                    cvs.width = this.width;
+                    cvs.height = this.height;
+                    cvs.drawImage(this, 0, 0);
+                }
+                imageObj.src = imgSrc;
+
+            }
+            $("#container").html(tmp);
+        }
+        var bindEvent = function () {
+            // 事件代理（实现点击小图弹出相应大图）
+            $('#container').delegate('li', 'tap', function () {
+                idx = $(this).attr('data-id');
+                loadImg(idx);
+            });
+            $('#large_container').tap(function () {
+                $(this).hide();
+            }).swipeLeft(function () {
+                idx++;
+                if (idx > total) {
+                    idx = total;
+                }
+                loadImg(idx, function () {
+                    // 动画结束之后需要取消添加的动画类名，否则动画会一直持续，其它图片看不到效果
+                    domImage.addEventListener('webkitAnimationEnd', function () {
+                        lImage.removeClass('animated bounceInRight');
+                        // 完成之后就不用继续监听了，需要第二个参数；不移除不影响效果
+                        domImage.removeEventListener('webkitAnimationEnd', arguments);
+                    }, false);
+                    lImage.addClass('animated bounceInRight');
+                });
+
+            }).swipeRight(function () {
+                idx--;
+                if (idx < 1) {
+                    idx = 1;
+                }
+                loadImg(idx, function () {
+                    domImage.addEventListener('webkitAnimationEnd', function () {
+                        lImage.removeClass('animated bounceInLeft');
+                        domImage.removeEventListener('webkitAnimationEnd', arguments);
+                    }, false);
+                    lImage.addClass('animated bounceInLeft');
+                });
+            })
+        }
+        render();
+        bindEvent();
+    </script>
+</body>
+
+</html>
