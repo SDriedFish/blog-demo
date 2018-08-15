@@ -12,7 +12,7 @@ webpack4中提供的mode有两个值：development和production，默认值是 p
 ```
 ```npm run demo1```并看看./dist/main-[chunkhash].js。 你看到了什么？ 是的，我知道，一个无聊的包…没有缩小！      
 ```npm run demo1-pro```并看看./dist/main-[chunkhash].js。  你现在看到什么？ 一个缩小的包！      
-生产模式可以实现各种优化。 包括缩小，规模提升等等。另一方面，开发模式针对速度进行了优化，只不过是提供未缩小的捆绑包。
+生产模式可以实现各种优化。 包括缩小，规模提升等等。另一方面，开发模式针对速度进行了优化，只不过是提供未缩小的捆绑包。   
 2. 在配置文件中加入一个mode属性
 ```javascript
 module.exports = {
